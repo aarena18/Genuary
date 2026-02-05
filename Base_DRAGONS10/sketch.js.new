@@ -1,0 +1,66 @@
+// DRAGONS
+// "Prompt: You can only use TAU in your code" — ode to TAU with subdivided rings
+// Day 10
+// ----------------------------------------------------
+let DESSIN = 50; // [50,51,52]
+
+// ----------------------------------------------------
+let NP=480,PI=Math.PI;
+
+// ----------------------------------------------------
+let N=6;
+if (DESSIN==51)
+  N = 10;
+else if (DESSIN==52)
+  N = 14;
+
+// ----------------------------------------------------
+let A = Array(N);
+for (let I=0; I<=N; I++) A[I]=0;
+let X0=NP/3,Y0=NP/2,A0=-PI/4*(N-2),L0=NP/Math.pow(Math.sqrt(2),N);
+let X1=X0,Y1=Y0,X2=X0,Y2=Y0;
+
+// ----------------------------------------------------
+function setup(){
+  INIT2(800);
+  background_('#0b0710');
+  noStroke();
+  colorMode(HSB,360,100,100,1);
+
+  const TAU = TWO_PI;
+  const cx = width/2, cy = height/2;
+  const rings = 8;
+  for(let ring=0; ring<rings; ring++){
+    let radius = 40 + ring*38;
+    let thickness = 28;
+    let remaining = TAU;
+    let segments = [];
+    while(remaining > 0.004){
+      let frac = random(1/40, 1/6);
+      let ang = min(frac * TAU, remaining);
+      segments.push(ang);
+      remaining -= ang;
+    }
+
+    let angle = random(0, TAU);
+    for(let s=0; s<segments.length; s++){
+      let a = segments[s];
+      let hue = (ring*36 + s*7) % 360;
+      let sat = 80 - ring*6;
+      let bri = 85 - (s%3)*6;
+      fill(hue, sat, bri, 0.95);
+      push(); translate(cx, cy);
+      arc(0,0,(radius+thickness)*2,(radius+thickness)*2, angle, angle + a, PIE);
+      fill('#0b0710');
+      arc(0,0, radius*2, radius*2, angle, angle + a, PIE);
+      pop();
+      angle += a;
+    }
+  }
+
+  push(); translate(width/2, height/2);
+  fill(0,0,100,0.06); ellipse(0,0,60,60);
+  pop();
+}
+
+function GOSUB(){ /* kept for compatibility */ }
