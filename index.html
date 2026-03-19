@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ambre's Genuary</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --bg: #c0c0c0;
+      --window-bg: #d4d0c8;
+      --window-border-light: #ffffff;
+      --window-border-dark: #808080;
+      --window-border-darker: #404040;
+      --titlebar: #000082;
+      --titlebar-text: #ffffff;
+      --titlebar-inactive: #808080;
+      --btn-face: #d4d0c8;
+      --btn-highlight: #ffffff;
+      --btn-shadow: #808080;
+      --btn-darkshadow: #404040;
+      --text: #000000;
+      --dot-color: #b0b0b0;
+      --font: 'Share Tech Mono', monospace;
+      --pixel: 1px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: #888;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      image-rendering: pixelated;
+    }
+
+    /* ─── OUTER SHELL (the "device" with hex connectors) ─── */
+    .shell {
+      position: relative;
+      width: 1100px;
+      height: 860px;
+      background: #c8c8c8;
+      border: 3px solid #999;
+      box-shadow:
+        inset 2px 2px 0 #fff,
+        inset -2px -2px 0 #555,
+        4px 4px 12px rgba(0,0,0,0.5);
+    }
+
+    /* hex connectors */
+    .hex {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      background: transparent;
+      border: 2px solid #999;
+    }
+    .hex-tl { top: 30px; left: -24px; clip-path: polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%); background: #bbb; border: none; }
+    .hex-tr { top: 30px; right: -24px; clip-path: polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%); background: #bbb; border: none; }
+    .hex-ml { top: 50%; left: -24px; transform: translateY(-50%); clip-path: polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%); background: #bbb; border: none; }
+    .hex-mr { top: 50%; right: -24px; transform: translateY(-50%); clip-path: polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%); background: #bbb; border: none; }
+    .hex-bl { bottom: 30px; left: -24px; clip-path: polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%); background: #bbb; border: none; }
+    .hex-br { bottom: 30px; right: -24px; clip-path: polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%); background: #bbb; border: none; }
+
+    /* hex outline decorations */
+    .hex-outline {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      border: 2px solid #aaa;
+      clip-path: polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);
+    }
+    .hex-outline-tl { top: 90px; left: -12px; }
+    .hex-outline-tl2 { top: 150px; left: -12px; }
+    .hex-outline-tr { top: 90px; right: -12px; }
+    .hex-outline-tr2 { top: 150px; right: -12px; }
+    .hex-outline-bl { bottom: 90px; left: -12px; }
+    .hex-outline-bl2 { bottom: 150px; left: -12px; }
+    .hex-outline-br { bottom: 90px; right: -12px; }
+    .hex-outline-br2 { bottom: 150px; right: -12px; }
+
+    /* bottom connector tabs */
+    .tab {
+      position: absolute;
+      bottom: -20px;
+      width: 80px;
+      height: 20px;
+      background: #bbb;
+      border: 2px solid #999;
+      border-top: none;
+    }
+    .tab1 { left: 280px; }
+    .tab2 { left: 490px; }
+    .tab3 { left: 700px; }
+
+    /* ─── MAIN WINDOW ─── */
+    .main-window {
+      position: absolute;
+      top: 40px; left: 80px; right: 80px; bottom: 60px;
+      background: var(--bg);
+      border: 2px solid;
+      border-color: var(--window-border-light) var(--window-border-darker) var(--window-border-darker) var(--window-border-light);
+      box-shadow: 1px 1px 0 var(--window-border-dark) inset, -1px -1px 0 var(--window-border-dark) inset;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── TITLE BAR ─── */
+    .titlebar {
+      height: 28px;
+      background: linear-gradient(90deg, #000082 0%, #1084d0 100%);
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .titlebar-title {
+      flex: 1;
+      text-align: center;
+      color: white;
+      font-size: 13px;
+      letter-spacing: 1px;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .titlebar-date {
+      color: white;
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .traffic-lights {
+      display: flex;
+      gap: 5px;
+    }
+
+    .tl {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+    }
+    .tl-red { background: radial-gradient(circle at 40% 35%, #ff6b6b, #e00); }
+    .tl-yellow { background: radial-gradient(circle at 40% 35%, #ffd93d, #c90); }
+    .tl-green { background: radial-gradient(circle at 40% 35%, #6bcb77, #090); }
+
+    /* ─── DESKTOP AREA ─── */
+    .desktop {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Desktop icon (the folder) */
+    .desktop-icon {
+      position: absolute;
+      top: 40px;
+      right: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .desktop-icon:hover .icon-img { filter: brightness(1.1); }
+    .desktop-icon:active .icon-img { filter: brightness(0.85); }
+
+    .icon-img {
+      width: 48px;
+      height: 48px;
+      image-rendering: pixelated;
+    }
+
+    .icon-label {
+      font-size: 11px;
+      color: white;
+      background: #000082;
+      padding: 1px 4px;
+    }
+
+    /* ─── DOCK ─── */
+    .dock {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      background: rgba(180,180,180,0.9);
+      border: 2px solid;
+      border-color: #fff #888 #888 #fff;
+      padding: 8px 12px;
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+    }
+
+    .dock-item {
+      width: 52px;
+      height: 52px;
+      background: rgba(200,200,200,0.6);
+      border: 2px solid;
+      border-color: #fff #888 #888 #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      font-size: 26px;
+      transition: transform 0.1s;
+    }
+
+    .dock-item:hover { transform: translateY(-4px); }
+    .dock-item:active { transform: translateY(0); }
+
+    .dock-tooltip {
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--btn-face);
+      border: 2px solid;
+      border-color: #fff #888 #888 #fff;
+      padding: 3px 10px;
+      font-size: 11px;
+      white-space: nowrap;
+      display: none;
+      z-index: 100;
+    }
+
+    .dock-item:hover .dock-tooltip { display: block; }
+
+    /* ─── WINDOWS ─── */
+    .win {
+      position: absolute;
+      background: white;
+      border: 2px solid;
+      border-color: #fff #555 #555 #fff;
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+      display: none;
+      flex-direction: column;
+      min-width: 200px;
+      z-index: 10;
+      user-select: none;
+    }
+
+    .win.active { display: flex; }
+
+    .win-titlebar {
+      height: 22px;
+      background: linear-gradient(90deg, #000082 0%, #1084d0 100%);
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      gap: 6px;
+      cursor: move;
+      flex-shrink: 0;
+    }
+
+    .win-title {
+      flex: 1;
+      text-align: center;
+      color: white;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    .win-search {
+      display: flex;
+      align-items: center;
+      background: white;
+      border: 2px inset #999;
+      height: 18px;
+      padding: 0 6px;
+      font-size: 10px;
+      font-family: var(--font);
+      width: 130px;
+    }
+
+    .win-close {
+      width: 12px;
+      height: 12px;
+      background: radial-gradient(circle at 40% 35%, #ff6b6b, #e00);
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.3);
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      color: transparent;
+    }
+
+    .win-close:hover { color: rgba(0,0,0,0.7); }
+
+    .win-body {
+      flex: 1;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    /* ─── FOLDER WINDOW ─── */
+    #win-folder {
+      top: 80px;
+      left: 60px;
+      width: 580px;
+    }
+
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      padding: 8px;
+    }
+
+    .file-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 6px 4px;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .file-item:hover { background: rgba(0,0,130,0.12); }
+    .file-item:active { background: rgba(0,0,130,0.25); }
+
+    .file-icon {
+      width: 36px;
+      height: 40px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* pixel-art document icon */
+    .file-icon svg { width: 100%; height: 100%; }
+
+    /* ─── ABOUT / TECH WINDOWS ─── */
+    #win-about, #win-tech {
+      top: 100px;
+      left: 120px;
+      width: 580px;
+      height: 480px;
+    }
+
+    .notepad-body {
+      flex: 1;
+      background: #f5f5f0;
+      background-image:
+        radial-gradient(circle, #ccc 1px, transparent 1px);
+      background-size: 18px 18px;
+      padding: 24px 28px;
+      font-size: 13px;
+      line-height: 2;
+      color: #333;
+      overflow: auto;
+    }
+
+    /* ─── SOCIALS WINDOW ─── */
+    #win-socials {
+      top: 120px;
+      left: 200px;
+      width: 580px;
+    }
+
+    .socials-body {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 20px 24px;
+    }
+
+    .avatar-box {
+      width: 110px;
+      height: 110px;
+      border: 2px solid #555;
+      background: #fff;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      image-rendering: pixelated;
+    }
+
+    .socials-links {
+      flex: 1;
+      border-left: 1px solid #bbb;
+      padding-left: 24px;
+    }
+
+    .social-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      text-decoration: none;
+      color: #000;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .social-row:last-child { border-bottom: none; }
+    .social-row:hover { background: rgba(0,0,130,0.06); }
+
+    .social-icon { font-size: 18px; width: 24px; }
+    .social-name { flex: 1; }
+    .social-arrow { color: #555; }
+
+    .socials-title {
+      text-align: center;
+      font-size: 14px;
+      padding: 14px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    /* ─── DAY WINDOW ─── */
+    #win-day {
+      top: 50px;
+      left: 100px;
+      width: 740px;
+      height: 540px;
+    }
+
+    .day-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .day-frame-wrapper {
+      flex: 1;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .day-frame-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .day-footer {
+      padding: 8px 12px;
+      border-top: 1px solid #ccc;
+      font-size: 11px;
+      color: #555;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .day-footer a {
+      color: #000082;
+      text-decoration: none;
+    }
+
+    .day-footer a:hover { text-decoration: underline; }
+
+    /* ─── PIXEL ART ICONS (SVG inline) ─── */
+    .folder-svg, .file-svg { image-rendering: pixelated; }
+
+    /* draggable windows */
+    .win { cursor: default; }
+
+  </style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- hex connectors -->
+  <div class="hex hex-tl"></div>
+  <div class="hex hex-tr"></div>
+  <div class="hex hex-ml"></div>
+  <div class="hex hex-mr"></div>
+  <div class="hex hex-bl"></div>
+  <div class="hex hex-br"></div>
+  <div class="hex-outline hex-outline-tl"></div>
+  <div class="hex-outline hex-outline-tl2"></div>
+  <div class="hex-outline hex-outline-tr"></div>
+  <div class="hex-outline hex-outline-tr2"></div>
+  <div class="hex-outline hex-outline-bl"></div>
+  <div class="hex-outline hex-outline-bl2"></div>
+  <div class="hex-outline hex-outline-br"></div>
+  <div class="hex-outline hex-outline-br2"></div>
+  <div class="tab tab1"></div>
+  <div class="tab tab2"></div>
+  <div class="tab tab3"></div>
+
+  <!-- Main OS Window -->
+  <div class="main-window">
+    <div class="titlebar">
+      <div class="traffic-lights">
+        <div class="tl tl-red">✕</div>
+        <div class="tl tl-yellow">−</div>
+        <div class="tl tl-green">+</div>
+      </div>
+      <div class="titlebar-title">Ambre's Genuary</div>
+      <div class="titlebar-date">updated &nbsp; 03/02/2026</div>
+    </div>
+
+    <div class="desktop">
+
+      <!-- Desktop folder icon -->
+      <div class="desktop-icon" id="btn-folder" ondblclick="openWindow('win-folder')">
+        <svg class="icon-img folder-svg" viewBox="0 0 32 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- pixel folder -->
+          <rect x="0" y="6" width="32" height="22" fill="#aaa" stroke="#555" stroke-width="1.5"/>
+          <rect x="0" y="2" width="12" height="6" fill="#aaa" stroke="#555" stroke-width="1.5"/>
+          <rect x="1" y="7" width="30" height="20" fill="#c0c0c0"/>
+          <rect x="0" y="6" width="32" height="2" fill="#888"/>
+        </svg>
+        <span class="icon-label">days 1-31</span>
+      </div>
+
+      <!-- ══════════════ FOLDER WINDOW ══════════════ -->
+      <div class="win" id="win-folder">
+        <div class="win-titlebar" onmousedown="startDrag(event,'win-folder')">
+          <div class="win-close" onclick="closeWindow('win-folder')">✕</div>
+          <div class="win-title">days 1-31</div>
+          <div class="win-search">🔍 Rechercher</div>
+        </div>
+        <div class="win-body">
+          <div class="file-grid" id="file-grid"></div>
+        </div>
+      </div>
+
+      <!-- ══════════════ DAY WINDOW ══════════════ -->
+      <div class="win" id="win-day">
+        <div class="win-titlebar" onmousedown="startDrag(event,'win-day')">
+          <div class="win-close" onclick="closeWindow('win-day')">✕</div>
+          <div class="win-title" id="win-day-title">day(1)</div>
+        </div>
+        <div class="day-body">
+          <div class="day-frame-wrapper">
+            <iframe id="day-iframe" sandbox="allow-scripts allow-same-origin" title="Genuary day sketch"></iframe>
+          </div>
+          <div class="day-footer">
+            <span id="day-label">day(1)</span>
+            <a id="day-gh-link" href="#" target="_blank" rel="noopener">view on GitHub →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════ ABOUT WINDOW ══════════════ -->
+      <div class="win" id="win-about">
+        <div class="win-titlebar" onmousedown="startDrag(event,'win-about')">
+          <div class="win-close" onclick="closeWindow('win-about')">✕</div>
+          <div class="win-title">about</div>
+        </div>
+        <div class="notepad-body">
+          <p><strong>Genuary</strong> is an artificially generated month of creative coding — every January, a new prompt each day challenges artists and developers to build things that are beautiful, weird, or unexpected with code.</p>
+          <br/>
+          <p>This portfolio collects all 31 of my sketches for <strong>Genuary 2026</strong>. Each piece was built from scratch, in a single day, following that day's prompt.</p>
+          <br/>
+          <p>→ <a href="https://genuary.art" target="_blank" rel="noopener" style="color:#000082">genuary.art</a></p>
+        </div>
+      </div>
+
+      <!-- ══════════════ TECH WINDOW ══════════════ -->
+      <div class="win" id="win-tech">
+        <div class="win-titlebar" onmousedown="startDrag(event,'win-tech')">
+          <div class="win-close" onclick="closeWindow('win-tech')">✕</div>
+          <div class="win-title">tech</div>
+        </div>
+        <div class="notepad-body">
+          <p>All sketches are built with <strong>vanilla JavaScript</strong> and the <strong>HTML5 Canvas API</strong> — no external libraries, no frameworks.</p>
+          <br/>
+          <p>Some days use <strong>WebGL / GLSL shaders</strong> for GPU-accelerated generative work. A few experiments lean on <strong>SVG</strong> for vector output.</p>
+          <br/>
+          <p>The portfolio shell itself is plain HTML + CSS, designed to evoke a classic pixel-art OS desktop.</p>
+        </div>
+      </div>
+
+      <!-- ══════════════ SOCIALS WINDOW ══════════════ -->
+      <div class="win" id="win-socials">
+        <div class="win-titlebar" onmousedown="startDrag(event,'win-socials')">
+          <div class="win-close" onclick="closeWindow('win-socials')">✕</div>
+          <div class="win-title">Want to see more ?</div>
+        </div>
+        <div class="win-body" style="padding:0">
+          <div class="socials-title">Want to see more ?</div>
+          <div class="socials-body">
+            <div class="avatar-box">
+              <!-- pixel avatar placeholder -->
+              <svg viewBox="0 0 40 40" width="80" height="80" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated">
+                <rect x="14" y="4" width="12" height="14" fill="#333"/>
+                <rect x="12" y="6" width="16" height="12" fill="#333"/>
+                <rect x="14" y="18" width="12" height="2" fill="#555"/>
+                <circle cx="20" cy="14" r="8" fill="#555"/>
+                <rect x="10" y="22" width="20" height="18" fill="#444" rx="2"/>
+                <rect x="6" y="22" width="6" height="12" fill="#444" rx="2"/>
+                <rect x="28" y="22" width="6" height="12" fill="#444" rx="2"/>
+                <!-- smile -->
+                <path d="M16 18 Q20 22 24 18" stroke="#aaa" stroke-width="1.5" fill="none"/>
+                <!-- eyes -->
+                <rect x="15" y="13" width="3" height="3" fill="#111"/>
+                <rect x="22" y="13" width="3" height="3" fill="#111"/>
+              </svg>
+            </div>
+            <div class="socials-links">
+              <a class="social-row" href="https://github.com/aarena18" target="_blank" rel="noopener">
+                <span class="social-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                </span>
+                <span class="social-name">github</span>
+                <span class="social-arrow">→</span>
+              </a>
+              <a class="social-row" href="https://linkedin.com" target="_blank" rel="noopener">
+                <span class="social-icon">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                </span>
+                <span class="social-name">linkedin</span>
+                <span class="social-arrow">→</span>
+              </a>
+              <a class="social-row" href="/cdn-cgi/l/email-protection#7018151c1c1f30111d1202155e141506">
+                <span class="social-icon">✉</span>
+                <span class="social-name">email</span>
+                <span class="social-arrow">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════ DOCK ══════════════ -->
+      <div class="dock">
+        <div class="dock-item" ondblclick="openWindow('win-about')" title="about">
+          🧳
+          <div class="dock-tooltip">about</div>
+        </div>
+        <div class="dock-item" ondblclick="openWindow('win-tech')" title="tech">
+          🎓
+          <div class="dock-tooltip">tech</div>
+        </div>
+        <div class="dock-item" ondblclick="openWindow('win-socials')" title="socials">
+          📬
+          <div class="dock-tooltip">socials</div>
+        </div>
+      </div>
+
+    </div><!-- /desktop -->
+  </div><!-- /main-window -->
+</div><!-- /shell -->
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // ── GitHub URL helpers ────────────────────────────────────────────────────
+  // day(1) → Base_DRAGONS1, day(2) → Base_DRAGONS2 … day(?) → Base_DRAGONS
+  // The folder "Base_DRAGONS" (no number) seems to be day 0 or a template —
+  // adjust getDragonFolder() below if needed.
+  function getDragonFolder(n) {
+    // day(1) → Base_DRAGONS1, day(10) → Base_DRAGONS10, etc.
+    return `Base_DRAGONS${n}`;
+  }
+
+  const GITHUB_PAGES_BASE = 'https://aarena18.github.io/Genuary/';
+  const GITHUB_REPO_BASE = 'https://github.com/aarena18/Genuary/tree/main/';
+
+  // ── Build file grid ────────────────────────────────────────────────────────
+  const grid = document.getElementById('file-grid');
+  for (let i = 1; i <= 31; i++) {
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.innerHTML = `
+      <svg class="file-svg" width="36" height="40" viewBox="0 0 18 20" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="13" height="18" fill="#fff" stroke="#555" stroke-width="1"/>
+        <polygon points="11,1 14,4 11,4" fill="#bbb" stroke="#555" stroke-width="0.8"/>
+        <line x1="3" y1="7" x2="12" y2="7" stroke="#aaa" stroke-width="0.8"/>
+        <line x1="3" y1="10" x2="12" y2="10" stroke="#aaa" stroke-width="0.8"/>
+        <line x1="3" y1="13" x2="9" y2="13" stroke="#aaa" stroke-width="0.8"/>
+      </svg>
+      <span>day(${i})</span>
+    `;
+    item.addEventListener('dblclick', () => openDay(i));
+    grid.appendChild(item);
+  }
+
+  // ── Open a day sketch ──────────────────────────────────────────────────────
+  function openDay(n) {
+    const iframe = document.getElementById('day-iframe');
+    const title  = document.getElementById('win-day-title');
+    const label  = document.getElementById('day-label');
+    const link   = document.getElementById('day-gh-link');
+    const folder = getDragonFolder(n);
+
+    title.textContent = `day(${n})`;
+    label.textContent = `day(${n})`;
+    link.href  = `${GITHUB_REPO_BASE}${folder}`;
+    iframe.src = `${GITHUB_PAGES_BASE}${folder}/index.html`; // GitHub Pages — évite CORS
+
+    openWindow('win-day');
+  }
+
+  // ── Window management ──────────────────────────────────────────────────────
+  let zTop = 20;
+
+  function openWindow(id) {
+    const win = document.getElementById(id);
+    win.classList.add('active');
+    win.style.zIndex = ++zTop;
+  }
+
+  function closeWindow(id) {
+    document.getElementById(id).classList.remove('active');
+    if (id === 'win-day') {
+      document.getElementById('day-iframe').src = '';
+    }
+  }
+
+  // Single-click on desktop icons to focus; double-click to open
+  document.getElementById('btn-folder').addEventListener('click', () => {
+    document.getElementById('btn-folder').style.outline = '2px dotted #000082';
+  });
+
+  // ── Drag logic ────────────────────────────────────────────────────────────
+  let dragging = null, ox = 0, oy = 0;
+
+  function startDrag(e, id) {
+    const win = document.getElementById(id);
+    win.style.zIndex = ++zTop;
+    dragging = win;
+    ox = e.clientX - win.offsetLeft;
+    oy = e.clientY - win.offsetTop;
+    e.preventDefault();
+  }
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    dragging.style.left = (e.clientX - ox) + 'px';
+    dr
