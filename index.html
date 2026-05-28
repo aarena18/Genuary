@@ -5,6 +5,282 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ambre's Genuary</title>
     <style>
+  /* ── PIXEL OS DESKTOP CHATBOT ─────────────────────────────────
+     Copy everything between the <style> tags into your existing
+     CSS, and the HTML + JS below into your index.html.
+     The chatbot is a floating draggable window.
+  ───────────────────────────────────────────────────────────── */
+ 
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+ 
+  /* Floating chat button (bottom-right) */
+  #chat-launcher {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9000;
+    background: #1a0533;
+    border: 2px solid #00f0ff;
+    color: #00f0ff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    box-shadow: 0 0 12px #00f0ff44, 4px 4px 0 #000;
+    transition: box-shadow 0.15s;
+    user-select: none;
+    letter-spacing: 1px;
+  }
+  #chat-launcher:hover {
+    box-shadow: 0 0 20px #00f0ffaa, 4px 4px 0 #000;
+  }
+  #chat-launcher .blink {
+    display: inline-block;
+    animation: blink 1s step-end infinite;
+    color: #ff44cc;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+ 
+  /* Chat window */
+  #chat-window {
+    position: fixed;
+    bottom: 80px;
+    right: 24px;
+    width: 340px;
+    height: 460px;
+    z-index: 9001;
+    display: flex;
+    flex-direction: column;
+    font-family: 'VT323', monospace;
+    background: #0f0225;
+    border: 2px solid #00f0ff;
+    box-shadow: 0 0 24px #00f0ff33, 6px 6px 0 #000;
+    transform-origin: bottom right;
+    transition: opacity 0.15s, transform 0.15s;
+    opacity: 0;
+    transform: scale(0.92);
+    pointer-events: none;
+  }
+  #chat-window.open {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: all;
+  }
+ 
+  /* Title bar — draggable */
+  #chat-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(90deg, #0831d9, #4a90d9);
+    padding: 5px 8px;
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  #chat-titlebar:active { cursor: grabbing; }
+  #chat-titlebar .title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+  #chat-titlebar .btns {
+    display: flex;
+    gap: 4px;
+  }
+  #chat-titlebar .btn-close,
+  #chat-titlebar .btn-min {
+    width: 14px;
+    height: 14px;
+    background: #c0c0c0;
+    border: none;
+    cursor: pointer;
+    font-size: 8px;
+    font-family: monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: inset -1px -1px 0 #555, inset 1px 1px 0 #fff;
+    color: #000;
+  }
+  #chat-titlebar .btn-close:hover { background: #ff5f57; color: #fff; }
+ 
+  /* Status bar */
+  #chat-status {
+    background: #1e0d3a;
+    border-bottom: 1px solid #3d1f6b;
+    padding: 4px 10px;
+    font-size: 13px;
+    color: #80cbc4;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #chat-status .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #80cbc4;
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+ 
+  /* Messages area */
+  #chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #3d1f6b #0f0225;
+  }
+  #chat-messages::-webkit-scrollbar { width: 6px; }
+  #chat-messages::-webkit-scrollbar-track { background: #0f0225; }
+  #chat-messages::-webkit-scrollbar-thumb { background: #3d1f6b; }
+ 
+  .msg {
+    display: flex;
+    flex-direction: column;
+    max-width: 88%;
+    animation: msgIn 0.18s ease-out;
+  }
+  @keyframes msgIn {
+    from { opacity:0; transform:translateY(6px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .msg.bot { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+ 
+  .msg .bubble {
+    padding: 8px 12px;
+    font-size: 16px;
+    line-height: 1.45;
+    border: 1px solid;
+  }
+  .msg.bot .bubble {
+    background: #1e0d3a;
+    border-color: #00f0ff;
+    color: #f0e6ff;
+    border-radius: 0 8px 8px 8px;
+  }
+  .msg.user .bubble {
+    background: #2d1b4e;
+    border-color: #e040fb;
+    color: #f0e6ff;
+    border-radius: 8px 0 8px 8px;
+  }
+  .msg .sender {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 5.5px;
+    margin-bottom: 3px;
+    letter-spacing: 0.5px;
+  }
+  .msg.bot .sender { color: #00f0ff; }
+  .msg.user .sender { color: #e040fb; text-align: right; }
+ 
+  /* Typing indicator */
+  #typing {
+    display: none;
+    align-self: flex-start;
+  }
+  #typing.visible { display: flex; }
+  #typing .bubble {
+    background: #1e0d3a;
+    border: 1px solid #00f0ff44;
+    border-radius: 0 8px 8px 8px;
+    padding: 8px 14px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  #typing span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #00f0ff;
+    animation: typing 1.2s ease-in-out infinite;
+  }
+  #typing span:nth-child(2) { animation-delay: 0.2s; }
+  #typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing { 0%,60%,100%{opacity:0.2;transform:translateY(0)} 30%{opacity:1;transform:translateY(-4px)} }
+ 
+  /* Quick reply chips */
+  #chat-chips {
+    padding: 6px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    border-top: 1px solid #1e0d3a;
+    background: #0f0225;
+    flex-shrink: 0;
+    min-height: 36px;
+  }
+  .chip {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    padding: 3px 9px;
+    background: #1e0d3a;
+    border: 1px solid #b39ddb;
+    color: #b39ddb;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+  .chip:hover {
+    background: #b39ddb;
+    color: #0f0225;
+  }
+ 
+  /* Input area */
+  #chat-input-area {
+    display: flex;
+    border-top: 2px solid #1e0d3a;
+    flex-shrink: 0;
+  }
+  #chat-input {
+    flex: 1;
+    background: #0f0225;
+    border: none;
+    outline: none;
+    color: #f0e6ff;
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    padding: 8px 12px;
+    caret-color: #00f0ff;
+  }
+  #chat-input::placeholder { color: #3d1f6b; }
+  #chat-send {
+    background: #1e0d3a;
+    border: none;
+    border-left: 1px solid #3d1f6b;
+    color: #00f0ff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    padding: 0 12px;
+    cursor: pointer;
+    transition: background 0.1s;
+    letter-spacing: 1px;
+  }
+  #chat-send:hover { background: #2d1b4e; }
+ 
+  /* Pixel scanlines overlay on window */
+  #chat-window::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent 0px, transparent 3px,
+      rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
       @import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap");
 
       :root {
@@ -984,6 +1260,355 @@
       <!-- /main-window -->
     </div>
     <!-- /shell -->
+
+    <!-- ══════════════════════════════════════════════════════
+     CHATBOT HTML — paste this into your index.html body
+     ══════════════════════════════════════════════════════ -->
+ 
+<!-- Launcher button -->
+<button id="chat-launcher" onclick="toggleChat()">
+  <span class="blink">▶</span> CHAT.EXE
+</button>
+ 
+<!-- Chat window -->
+<div id="chat-window">
+  <div id="chat-titlebar" id="drag-handle">
+    <span class="title">💬 genuary_chat.exe</span>
+    <div class="btns">
+      <button class="btn-min" onclick="toggleChat()">_</button>
+      <button class="btn-close" onclick="toggleChat()">✕</button>
+    </div>
+  </div>
+  <div id="chat-status">
+    <div class="dot"></div>
+    <span>GENUARY_BOT v1.0 — online</span>
+  </div>
+  <div id="chat-messages">
+    <!-- Messages injected by JS -->
+  </div>
+  <div id="typing" class="msg bot">
+    <div class="bubble">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+  <div id="chat-chips"></div>
+  <div id="chat-input-area">
+    <input id="chat-input" type="text" placeholder="type a message..." maxlength="120"
+      onkeydown="if(event.key==='Enter') sendUserMsg()" autocomplete="off" />
+    <button id="chat-send" onclick="sendUserMsg()">SEND ▶</button>
+  </div>
+</div>
+ 
+<!-- ══════════════════════════════════════════════════════
+     CHATBOT JS — paste this before </body>
+     ══════════════════════════════════════════════════════ -->
+<script>
+/* ── KNOWLEDGE BASE ──────────────────────────────────────────
+   All responses are hard-coded. No API, no AI.
+   Add/edit entries freely.
+─────────────────────────────────────────────────────────── */
+const BOT_NAME  = "GENUARY_BOT";
+const USER_NAME = "YOU";
+ 
+// All 31 prompts + info about Ambre's work
+const PROMPTS = [
+  { day:1,  title:"One color, one shape" },
+  { day:2,  title:"Twelve principles of animation" },
+  { day:3,  title:"Fibonacci forever" },
+  { day:4,  title:"Lowres" },
+  { day:5,  title:"Write 'Genuary' without a font" },
+  { day:6,  title:"Lights on / off" },
+  { day:7,  title:"Boolean algebra" },
+  { day:8,  title:"A City" },
+  { day:9,  title:"Crazy automaton" },
+  { day:10, title:"Polar coordinates" },
+  { day:11, title:"Quine" },
+  { day:12, title:"Boxes only" },
+  { day:13, title:"Self portrait" },
+  { day:14, title:"Everything fits perfectly" },
+  { day:15, title:"Invisible object, visible shadow" },
+  { day:16, title:"Order and disorder" },
+  { day:17, title:"Wallpaper group" },
+  { day:18, title:"Unexpected path" },
+  { day:19, title:"16x16" },
+  { day:20, title:"One line" },
+  { day:21, title:"Bauhaus poster" },
+  { day:22, title:"Pen plotter ready" },
+  { day:23, title:"Transparency" },
+  { day:24, title:"Perfectionist's nightmare" },
+  { day:25, title:"Organic geometry" },
+  { day:26, title:"Recursive grids" },
+  { day:27, title:"Lifeform" },
+  { day:28, title:"No libs, no canvas, HTML only" },
+  { day:29, title:"Genetic evolution and mutation" },
+  { day:30, title:"It's not a bug, it's a feature" },
+  { day:31, title:"GLSL day" },
+];
+ 
+// Favourites — personalise these!
+const FAVOURITES = [9, 10, 26, 31];
+ 
+// ── RESPONSE RULES ──────────────────────────────────────────
+// Each rule: { match: fn(input) → bool, reply: string | fn → string, chips?: [] }
+// Rules are tested in order — first match wins.
+ 
+const RULES = [
+  // ── Greetings
+  {
+    match: i => /^(hi|hello|hey|salut|bonjour|yo|coucou|sup)/i.test(i),
+    reply: () => pick([
+      "Hey! 👾 I'm the Genuary Bot — I know everything about Ambre's 31 generative art sketches from January 2026. Ask me anything!",
+      "Hello! I'm GENUARY_BOT. I live inside this portfolio and I've watched Ambre code all 31 sketches. What do you want to know?",
+      "Salut! 🎨 Je suis le bot de ce portfolio. Pose-moi des questions sur les sketches Genuary d'Ambre !",
+    ]),
+    chips: ["What is Genuary?", "Your favourite sketch?", "What tech did she use?", "Show me all 31 prompts"],
+  },
+ 
+  // ── What is Genuary
+  {
+    match: i => /genuary|what is|c'est quoi|kesako/i.test(i),
+    reply: "Genuary is an artificially generated January — every day of the month has a creative coding prompt. Artists and developers worldwide submit one piece per day. Ambre completed ALL 31 for 2026. That's 31 sketches in 31 days. 💪",
+    chips: ["What tech did she use?", "Your favourite sketch?", "Hardest day?"],
+  },
+ 
+  // ── Tech stack
+  {
+    match: i => /tech|stack|language|code|tool|library|framework|vanilla|canvas|webgl|glsl|js|javascript/i.test(i),
+    reply: "Ambre built everything with Vanilla JavaScript + the HTML5 Canvas API — zero external libraries, zero frameworks. 🔥 Some days used WebGL/GLSL shaders for GPU-accelerated work (especially day 31). A few experiments used SVG for vector output. The portfolio shell itself is plain HTML + CSS.",
+    chips: ["What is GLSL?", "Which day used shaders?", "Your favourite sketch?"],
+  },
+ 
+  // ── GLSL / WebGL
+  {
+    match: i => /glsl|webgl|shader|gpu/i.test(i),
+    reply: "GLSL (OpenGL Shading Language) runs directly on the GPU — it lets you write programs that process millions of pixels in parallel. Day 31 was the dedicated 'GLSL day'. The result? Pure GPU-powered generative visuals. Fast, trippy, powerful.",
+    chips: ["Tell me about day 31", "What is Genuary?", "Your favourite sketch?"],
+  },
+ 
+  // ── Favourite sketch
+  {
+    match: i => /fav(ou?rite)?|best|love|préféré|coup de coeur/i.test(i),
+    reply: () => {
+      const fav = PROMPTS.find(p => p.day === pick(FAVOURITES));
+      return `My favourite? Day ${fav.day}: "${fav.title}". 🌟 It's one of those sketches where the constraint forced something beautiful — code as a creative limitation. Ask me about another day if you're curious!`;
+    },
+    chips: ["Tell me about day 9", "Tell me about day 31", "Tell me about day 26", "Hardest day?"],
+  },
+ 
+  // ── Hardest day
+  {
+    match: i => /hard|difficult|tough|challenge|complex/i.test(i),
+    reply: "Toughest days? Day 28 (no libraries, no canvas — HTML only!) forced completely different thinking. Day 11 (Quine — code that prints itself) was a brain-bender. And day 31 (GLSL shaders) needed GPU knowledge on a deadline. Brutal. Beautiful.",
+    chips: ["Tell me about day 28", "Tell me about day 11", "Tell me about day 31"],
+  },
+ 
+  // ── All prompts list
+  {
+    match: i => /all|list|31|prompts?|every day/i.test(i),
+    reply: () => {
+      const half1 = PROMPTS.slice(0, 16).map(p => `Day ${String(p.day).padStart(2,'0')}: ${p.title}`).join('\n');
+      const half2 = PROMPTS.slice(16).map(p => `Day ${String(p.day).padStart(2,'0')}: ${p.title}`).join('\n');
+      return `Here are all 31 Genuary 2026 prompts:\n\n${half1}\n\n${half2}`;
+    },
+    chips: ["Your favourite sketch?", "Hardest day?", "What tech did she use?"],
+  },
+ 
+  // ── Who is Ambre
+  {
+    match: i => /who|ambre|artist|about|bio|creator|auteur/i.test(i),
+    reply: "Ambre Arena is a creative developer and generative artist who explores the intersection of code and visual expression. She builds algorithmic systems, emergent forms, and digital aesthetics — every sketch is made from scratch, in a single day. Find her on GitHub: github.com/aarena18",
+    chips: ["What is Genuary?", "What tech did she use?", "Your favourite sketch?"],
+  },
+ 
+  // ── Specific days (dynamic — matches "day 9", "day9", "jour 9", "#9", etc.)
+  {
+    match: i => /day\s*(\d{1,2})|jour\s*(\d{1,2})|#(\d{1,2})/i.test(i),
+    reply: (i) => {
+      const m = i.match(/day\s*(\d{1,2})|jour\s*(\d{1,2})|#(\d{1,2})/i);
+      const num = parseInt(m[1] || m[2] || m[3]);
+      const p = PROMPTS.find(x => x.day === num);
+      if (!p) return `I don't know about day ${num} — Genuary only goes from 1 to 31!`;
+      const isFav = FAVOURITES.includes(num);
+      return `Day ${p.day}: "${p.title}" ${isFav ? '⭐ (one of my favourites!)' : ''}\n\nThis sketch was built with Vanilla JS + Canvas API${num === 31 ? ' + GLSL shaders' : num === 28 ? ' — but NO canvas! Pure HTML only' : ''}. Each piece was made in a single day, from scratch, following the prompt. Check it out on the portfolio above!`;
+    },
+    chips: () => {
+      const r = [9,10,26,31].map(d=>`Tell me about day ${d}`);
+      r.push("Show me all 31 prompts");
+      return r;
+    },
+  },
+ 
+  // ── Contact / links
+  {
+    match: i => /contact|github|linkedin|email|link|social|follow|find/i.test(i),
+    reply: "Find Ambre's work here:\n→ Portfolio: aarena18.github.io/Genuary\n→ GitHub: github.com/aarena18\n→ LinkedIn: linkedin.com/in/ambre-arena\n\nShe's open to collabs, creative coding projects, and generative art commissions! 🎨",
+    chips: ["What is Genuary?", "Your favourite sketch?"],
+  },
+ 
+  // ── Recursive grids (day 26) special
+  {
+    match: i => /recursive|recursion|grid/i.test(i),
+    reply: "Day 26: Recursive Grids ⭐ — the canvas keeps subdividing itself according to simple rules, creating infinite depth from finite code. It's one of the most visually striking pieces in the collection. Recursion is when a function calls itself — the output is fractal-like complexity from a tiny ruleset.",
+    chips: ["Tell me about day 9", "Tell me about day 31", "What tech did she use?"],
+  },
+ 
+  // ── Polar coordinates (day 10)
+  {
+    match: i => /polar|coordinate|angle|circle/i.test(i),
+    reply: "Day 10: Polar Coordinates 🌀 — instead of drawing with X/Y positions, you describe every point by its angle and distance from the centre. The result? Mathematical beauty — spirals, roses, and mandalas that would be nearly impossible to design by hand.",
+    chips: ["Your favourite sketch?", "Show me all 31 prompts"],
+  },
+ 
+  // ── Automaton (day 9)
+  {
+    match: i => /automaton|automata|cellular|cell/i.test(i),
+    reply: "Day 9: Crazy Automaton 🤖 — cellular automata are grids of cells that live or die based on their neighbours. Think Conway's Game of Life, but wilder. Simple local rules → global emergent complexity. It's one of the most fascinating areas of generative art.",
+    chips: ["Tell me about day 26", "Tell me about day 31", "Your favourite sketch?"],
+  },
+ 
+  // ── Thanks / bye
+  {
+    match: i => /thank|merci|bye|ciao|au revoir|cool|awesome|nice|super|wow/i.test(i),
+    reply: () => pick([
+      "Thanks for visiting! 🎨 Come back anytime — there are 31 sketches to explore!",
+      "Glad you liked it! The code is all open source on GitHub if you want to dig in. ✌️",
+      "Merci ! N'hésite pas à explorer les 31 sketches — chacun est différent.",
+    ]),
+    chips: ["Your favourite sketch?", "Show me all 31 prompts", "Who is Ambre?"],
+  },
+ 
+  // ── Fallback
+  {
+    match: () => true,
+    reply: () => pick([
+      "Hmm, I'm not sure about that one. Try asking about a specific day, the tech stack, or Genuary in general!",
+      "I didn't quite get that 🤔 I know about Genuary, the 31 sketches, Ambre's tech stack, and her contact info — ask away!",
+      "Not sure I understand! Try: 'Tell me about day 9', 'What tech did she use?', or 'Who is Ambre?'",
+    ]),
+    chips: ["What is Genuary?", "Your favourite sketch?", "What tech did she use?", "Who is Ambre?"],
+  },
+];
+ 
+// ── UTILS ───────────────────────────────────────────────────
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+ 
+// ── STATE ────────────────────────────────────────────────────
+let chatOpen = false;
+const messagesEl = document.getElementById('chat-messages');
+const chipsEl    = document.getElementById('chat-chips');
+const inputEl    = document.getElementById('chat-input');
+const typingEl   = document.getElementById('typing');
+const windowEl   = document.getElementById('chat-window');
+ 
+// ── CHAT TOGGLE ──────────────────────────────────────────────
+function toggleChat() {
+  chatOpen = !chatOpen;
+  windowEl.classList.toggle('open', chatOpen);
+  if (chatOpen && messagesEl.children.length === 0) {
+    // Opening for the first time — show welcome message
+    setTimeout(() => botSay(
+      "Hey! 👾 I'm GENUARY_BOT — I know everything about Ambre's 31 generative art sketches from January 2026.\n\nAsk me anything!",
+      ["What is Genuary?", "Your favourite sketch?", "What tech did she use?", "Show me all 31 prompts"]
+    ), 400);
+  }
+}
+ 
+// ── SEND USER MESSAGE ────────────────────────────────────────
+function sendUserMsg() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = '';
+  addMessage('user', text);
+  clearChips();
+  showTyping();
+  // Simulate thinking delay
+  setTimeout(() => respond(text), 700 + Math.random() * 400);
+}
+ 
+// ── RESPOND ─────────────────────────────────────────────────
+function respond(input) {
+  hideTyping();
+  const rule = RULES.find(r => r.match(input));
+  const replyText = typeof rule.reply === 'function' ? rule.reply(input) : rule.reply;
+  const chips = typeof rule.chips === 'function' ? rule.chips(input) : (rule.chips || []);
+  botSay(replyText, chips);
+}
+ 
+// ── BOT SAY ──────────────────────────────────────────────────
+function botSay(text, chips = []) {
+  addMessage('bot', text);
+  setChips(chips);
+  scrollToBottom();
+}
+ 
+// ── ADD MESSAGE ──────────────────────────────────────────────
+function addMessage(who, text) {
+  const div = document.createElement('div');
+  div.className = `msg ${who}`;
+  const sender = document.createElement('div');
+  sender.className = 'sender';
+  sender.textContent = who === 'bot' ? BOT_NAME : USER_NAME;
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  // Support newlines
+  bubble.innerHTML = text.replace(/\n/g, '<br>');
+  div.appendChild(sender);
+  div.appendChild(bubble);
+  // Insert before typing indicator
+  messagesEl.appendChild(div);
+  scrollToBottom();
+}
+ 
+// ── CHIPS ────────────────────────────────────────────────────
+function setChips(chips) {
+  chipsEl.innerHTML = '';
+  chips.slice(0, 4).forEach(label => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.textContent = label;
+    btn.onclick = () => {
+      inputEl.value = label;
+      sendUserMsg();
+    };
+    chipsEl.appendChild(btn);
+  });
+}
+function clearChips() { chipsEl.innerHTML = ''; }
+ 
+// ── TYPING INDICATOR ─────────────────────────────────────────
+function showTyping() { typingEl.classList.add('visible'); scrollToBottom(); }
+function hideTyping()  { typingEl.classList.remove('visible'); }
+ 
+// ── SCROLL ───────────────────────────────────────────────────
+function scrollToBottom() {
+  requestAnimationFrame(() => {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  });
+}
+ 
+// ── DRAGGABLE WINDOW ─────────────────────────────────────────
+(function makeDraggable() {
+  const win = document.getElementById('chat-window');
+  const bar = document.getElementById('chat-titlebar');
+  let dragging = false, ox = 0, oy = 0;
+ 
+  bar.addEventListener('mousedown', e => {
+    dragging = true;
+    const r = win.getBoundingClientRect();
+    ox = e.clientX - r.left;
+    oy = e.clientY - r.top;
+    win.style.transition = 'none';
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    win.style.right  = 'auto';
+    win.style.bottom = 'auto';
+    win.style.left   = (e.clientX - ox) + 'px';
+    win.style.top    = (e.clientY - oy) + 'px';
+  });
+  document.addEventListener('mouseup', () => { dragging = false; });
+})();
+</script>
 
     <script
       data-cfasync="false"
